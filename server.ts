@@ -1,5 +1,4 @@
-import {Application, Status, Router} from "https://deno.land/x/oak/mod.ts";
-import {testApiHandler} from "./controller/userController.ts";
+import {Application} from "https://deno.land/x/oak/mod.ts";
 import apiRouter from "./router/api.ts";
 const app = new Application();
 
