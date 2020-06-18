@@ -4,6 +4,7 @@ import {saveUser, selectUserByPhone} from "../repository/userRepo.ts";
 import {Response} from "../helper/Response.ts"
 import {encryptPass, verifyPass} from "../security/pass.ts";
 import {User} from "../model/user.ts";
+import {genToken} from "../security/jwt.ts";
 
 const testCollection = Db.collection("test");
 export const testApiHandler = async (context: Context) => {
@@ -43,7 +44,14 @@ export const signInHandler = async (context: Context) => {
 
     return Response(context, Status.OK, {
         status: Status.OK,
-        message: STATUS_TEXT.get(Status.OK)
+        message: STATUS_TEXT.get(Status.OK),
+        data: {
+            displayName: user.displayName,
+            avatar: user.avatar,
+            token: genToken({
+                phone: user.phone,
+            })
+        }
     })
 }
 
@@ -70,9 +78,17 @@ export const signUpHandler = async (context: Context) => {
     }
 
 
+
     return Response(context, Status.OK, {
         status: Status.OK,
-        message: STATUS_TEXT.get(Status.OK)
+        message: STATUS_TEXT.get(Status.OK),
+        data: {
+            displayName: user.displayName,
+            avatar: user.avatar,
+            token: genToken({
+                phone: user.phone,
+            })
+        }
     })
 
 }
