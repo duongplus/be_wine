@@ -7,7 +7,7 @@ export const saveUser = async (user: User) => {
     return await userCollection.insertOne(user);
 }
 
-export const selectUserByPhone = async (phone: string) => {
+export const selectUserByPhone = async (phone: any) => {
     return await userCollection.findOne({
         phone: phone,
     });

@@ -5,6 +5,7 @@ import {Response} from "../helper/Response.ts"
 import {encryptPass, verifyPass} from "../security/pass.ts";
 import {User} from "../model/user.ts";
 import {genToken} from "../security/jwt.ts";
+import {fetchPayload} from "../helper/token.ts";
 
 export const signInHandler = async (context: Context) => {
     const body = await context.request.body()
@@ -80,6 +81,23 @@ export const signUpHandler = async (context: Context) => {
 }
 
 export const profileHandler = async (context: Context) => {
-    console.log("profile api");
+    const payload = await fetchPayload(context);
+
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (!user) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound)
+        })
+    }
+
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: {
+            displayName: user.displayName,
+            avatar: user.avatar,
+        }
+    })
 }
 

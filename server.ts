@@ -1,4 +1,4 @@
-import {Application} from "https://deno.land/x/oak/mod.ts";
+import {Application} from "https://deno.land/x/oak/mod.ts";//https://deno.land/x/oak@v5.2.0
 import apiRouter from "./router/api.ts";
 const app = new Application();
 
