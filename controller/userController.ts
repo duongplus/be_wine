@@ -1,6 +1,6 @@
 import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import Db from "../db/database.ts";
-import {saveUser, selectUserByPhone, selectUserByPhoneAndPass, changePassword} from "../repository/userRepo.ts";
+import {saveUser, selectUserByPhone} from "../repository/userRepo.ts";
 import {Response} from "../helper/Response.ts"
 import {encryptPass, verifyPass} from "../security/pass.ts";
 import {ROLE, User} from "../model/user.ts";
