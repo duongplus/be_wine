@@ -4,4 +4,10 @@ export interface User {
     avatar: string;
     phone: string;
     password: string;
+    role: string;
+}
+
+export enum ROLE {
+    MEMBER = "MEMBER",
+    ADMIN = "ADMIN"
 }
