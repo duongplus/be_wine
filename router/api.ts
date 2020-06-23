@@ -1,7 +1,7 @@
 import {Application, Router} from "https://deno.land/x/oak/mod.ts";
 import {profileHandler, signInHandler, signUpHandler,checkAdminHandler} from "../controller/userController.ts";
 import {jwtMiddleware} from "../middleware/jwtMiddleware.ts";
-import {wineListHandler, addWineHandler, wineDetailHandler} from "../controller/wineController.ts";
+import {wineListHandler, addWineHandler, wineDetailHandler, wineCateHandler} from "../controller/wineController.ts";
 
 const router = new Router();
 router
@@ -12,6 +12,7 @@ router
     .get("/api/wine/list", wineListHandler)
     .post("/api/wine/add", jwtMiddleware, addWineHandler)
     .get("/api/wine/detail/:id", wineDetailHandler)
+    .get("/api/wine/cate/:cateId", wineCateHandler)
 
 ;
 
