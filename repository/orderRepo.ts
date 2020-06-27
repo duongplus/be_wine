@@ -34,3 +34,11 @@ export const checkWineExist = async (wineId:string, phone: any) => {
     })
 
 }
+
+export const updateOrderStatus = async (phone: any) => {
+    return await orderCollection.updateOne({
+        phone: phone,
+    }, {
+        status: OrderStatus.CONFIRM,
+    });
+};
