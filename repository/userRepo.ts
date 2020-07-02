@@ -13,3 +13,13 @@ export const selectUserByPhone = async (phone: any) => {
     });
 }
 
+export const changePassword = async (phone: any, pass: string) => {
+    return await userCollection.updateOne({
+            phone: phone
+        },
+        {
+            $set: {
+                password: pass
+            }
+        })
+}
