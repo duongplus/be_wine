@@ -13,7 +13,7 @@ export const signInHandler = async (context: Context) => {
 
     //verify phone
     const user: User = await selectUserByPhone(reqData.phone);
-    if(!user) {
+    if (!user) {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound)
@@ -22,7 +22,7 @@ export const signInHandler = async (context: Context) => {
 
     //verify pass
     const passIsValid = verifyPass(reqData.password, user.password);
-    if(!passIsValid){
+    if (!passIsValid) {
         return Response(context, Status.Unauthorized, {
             status: Status.Unauthorized,
             message: STATUS_TEXT.get(Status.Unauthorized)
@@ -47,7 +47,7 @@ export const signUpHandler = async (context: Context) => {
     const body = await context.request.body()
     const reqData = body.value
 
-    const user = await selectUserByPhone(reqData.phone)
+    let user = await selectUserByPhone(reqData.phone)
     if (user) {
         return Response(context, Status.Conflict, {
             status: Status.Conflict,
@@ -56,7 +56,7 @@ export const signUpHandler = async (context: Context) => {
     }
     reqData.role = ROLE.MEMBER;
     reqData.password = encryptPass(reqData.password);
-    if(reqData.phone == "0933505575") {
+    if (reqData.phone == "0933505575") {
         reqData.role = ROLE.ADMIN
     }
     const insertId = await saveUser(reqData);
@@ -68,8 +68,7 @@ export const signUpHandler = async (context: Context) => {
             message: STATUS_TEXT.get(Status.InternalServerError)
         })
     }
-
-
+    user = reqData;
     return Response(context, Status.OK, {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
@@ -117,7 +116,7 @@ export const checkAdminHandler = async (context: Context) => {
         })
     }
 
-    if(user.role == ROLE.ADMIN){
+    if (user.role == ROLE.ADMIN) {
         return Response(context, Status.OK, {
             status: Status.OK,
             message: STATUS_TEXT.get(Status.OK),
@@ -129,7 +128,7 @@ export const checkAdminHandler = async (context: Context) => {
         })
     }
 
-    return Response(context, Status.Unauthorized,{
+    return Response(context, Status.Unauthorized, {
         status: Status.Unauthorized,
         message: "you are not admin"
     })
@@ -144,7 +143,7 @@ export const changePasswordHandler = async (context: Context) => {
     //verify pass
     const passIsValid = verifyPass(reqData.password, user.password);
     console.log(passIsValid)
-    if(!passIsValid){
+    if (!passIsValid) {
         return Response(context, Status.Unauthorized, {
             status: Status.Unauthorized,
             message: STATUS_TEXT.get(Status.Unauthorized)
@@ -154,14 +153,14 @@ export const changePasswordHandler = async (context: Context) => {
     console.log(reqData.newPass)
     reqData.newPass = encryptPass(reqData.newPass);
     const isChanged = changePassword(payload?.phone, reqData.newPass);
-    if(!isChanged){
+    if (!isChanged) {
         return Response(context, 211, {
             status: Status.NotFound,
             message: "Đ' đổi được"
         })
     }
 
-    return Response(context, Status.OK,{
+    return Response(context, Status.OK, {
         status: Status.OK,
         message: "OK"
     })
