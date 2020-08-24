@@ -6,6 +6,16 @@ import {fetchPayload} from "../helper/token.ts";
 import {ROLE, User} from "../model/user.ts";
 import {selectUserByPhone} from "../repository/userRepo.ts";
 
+
+export const exportAnImage = async (context: Context) => {
+    const imageBuf = await Deno.readFileSync("images/fish.png");
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: imageBuf,
+    })
+}
+
 export const wineListHandler = async (context: Context) => {
     const cates = [
         {

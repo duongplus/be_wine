@@ -1,5 +1,5 @@
 import Db from "../db/database.ts";
-import {Order, OrderStatus} from "../model/order.ts";
+import {Order, OrderInfo, OrderStatus} from "../model/order.ts";
 import {Wine} from "../model/wine.ts";
 
 const orderCollection = Db.collection("orders");
@@ -15,25 +15,36 @@ export const createOrder = async (order: Order) => {
     return await orderCollection.insertOne(order);
 }
 
-export const addWineToOrder = async (wine: Wine, phone: any) => {
+export const addWineToOrder = async (orderInfo: OrderInfo, phone: any) => {
     return await orderCollection.updateOne({
         phone: phone
     }, {
         $push: {
-            "wines": wine
+            "wines": {orderInfo}
         }
     })
 }
 
-export const checkWineExist = async (wineId:string, phone: any) => {
+export const addMoreWineToOrder = async (phone: any, index: number, wines: OrderInfo[]) => {
+    // const query = "wines."+index+".orderInfo.amount:1";
+    // @ts-ignore
+    wines[index]["orderInfo"].amount += 1;
+    return await orderCollection.updateOne({
+            phone: phone,
+        },
+        {
+            $set: {
+                wines: wines
+            }
+        })
+}
+
+
+export const checkWineExist = async (phone: any, wineId: any) => {
     return await orderCollection.find({
         phone: phone,
-        wines: {
-            $in: [wineId]
-        }
-    })
-
-}
+    });
+};
 
 export const updateOrderStatus = async (phone: any) => {
     return await orderCollection.updateOne({

@@ -2,8 +2,13 @@ import {Wine} from "./wine.ts";
 
 export interface Order {
     phone: any;
-    wines: Wine[];
+    wines: OrderInfo[];
     status: OrderStatus;
+}
+
+export interface OrderInfo {
+    wine: Wine;
+    amount: number;
 }
 
 export enum OrderStatus {
