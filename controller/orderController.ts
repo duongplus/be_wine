@@ -7,7 +7,7 @@ import {
     addMoreWineToOrder,
     addWineToOrder,
     checkWineExist,
-    createOrder,
+    createOrder, minusWineFromOrder,
     selectOrderByPhone,
     updateOrderStatus
 } from "../repository/orderRepo.ts";
@@ -54,7 +54,7 @@ export const addToCartHandler = async (context: any) => {
         if(_orderInfo["wine"]._id.$oid == wineId){
             const w = await addMoreWineToOrder(data?.phone, i, _wines)
             console.log(w)
-            return Response(context, Status.Conflict, {
+            return Response(context, Status.Accepted, {
                 status: Status.Accepted,
                 message: STATUS_TEXT.get(Status.Accepted),
             });
@@ -79,6 +79,62 @@ export const addToCartHandler = async (context: any) => {
         message: STATUS_TEXT.get(Status.OK),
     });
 };
+
+export const minusFromCartHandler = async (context: any) => {
+    const data = await fetchPayload(context);
+    const {wineId} = context.params as { wineId: string };
+
+    const wine: Wine = await selectWineById(wineId);
+    if (!wine) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+
+    const order: Order = await selectOrderByPhone(data?.phone);
+    if(!order){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+
+    const wineExist = await selectOrderByPhone(data?.phone);
+    const _wines = wineExist["wines"];
+    const _objOrderInfo = [];
+    let _orderInfo = null;
+
+    if(_wines.length==0){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+    for(let i=0; i<_wines.length; i++) {
+        _objOrderInfo[i] = _wines[i];
+        _orderInfo = _objOrderInfo[i]["orderInfo"];
+        if(_orderInfo["wine"]._id.$oid == wineId){
+            const w = await minusWineFromOrder(data?.phone, i, _wines)
+            console.log(w)
+            if(!w){
+                return Response(context, Status.NotFound, {
+                    status: Status.NotFound,
+                    message: STATUS_TEXT.get(Status.NotFound),
+                });
+            }
+            return Response(context, Status.Accepted, {
+                status: Status.Accepted,
+                message: STATUS_TEXT.get(Status.Accepted),
+            });
+        }
+    }
+
+    return Response(context, Status.NotFound, {
+        status: Status.NotFound,
+        message: STATUS_TEXT.get(Status.NotFound),
+    });
+}
 
 export const checkoutHandler = async (context: Context) => {
     const data = await fetchPayload(context);

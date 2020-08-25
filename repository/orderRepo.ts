@@ -39,6 +39,29 @@ export const addMoreWineToOrder = async (phone: any, index: number, wines: Order
         })
 }
 
+export const minusWineFromOrder = async (phone: any, index: number, wines: OrderInfo[]) => {
+    // @ts-ignore
+    const amount = wines[index]["orderInfo"].amount -= 1;
+    if(amount > 0) {
+        return await orderCollection.updateOne({
+                phone: phone,
+            },
+            {
+                $set: {
+                    wines: wines
+                }
+            })
+    }
+    wines.splice(index, 1);
+    return await orderCollection.updateOne({
+            phone: phone,
+        },
+        {
+            $set: {
+                wines: wines
+            }
+        });
+}
 
 export const checkWineExist = async (phone: any, wineId: any) => {
     return await orderCollection.find({

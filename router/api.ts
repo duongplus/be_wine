@@ -14,7 +14,12 @@ import {
     wineCateHandler,
     exportAnImage
 } from "../controller/wineController.ts";
-import {addToCartHandler, checkoutHandler, shoppingCartHandler} from "../controller/orderController.ts";
+import {
+    addToCartHandler,
+    checkoutHandler,
+    minusFromCartHandler,
+    shoppingCartHandler
+} from "../controller/orderController.ts";
 
 const router = new Router();
 router
@@ -33,6 +38,7 @@ router
     .get("/api/wine/detail/:id", wineDetailHandler)
     .get("/api/wine/cate/:cateId", wineCateHandler)
     .post("/api/order/add-to-cart/:wineId", jwtMiddleware, addToCartHandler)
+    .post("/api/order/minus-to-cart/:wineId", jwtMiddleware, minusFromCartHandler)
     .get("/api/order/shopping-cart", jwtMiddleware, shoppingCartHandler)
     .post("/api/order/checkout", jwtMiddleware, checkoutHandler);
 ;
