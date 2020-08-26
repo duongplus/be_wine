@@ -40,7 +40,7 @@ router
     .post("/api/order/add-to-cart/:wineId", jwtMiddleware, addToCartHandler)
     .post("/api/order/minus-to-cart/:wineId", jwtMiddleware, minusFromCartHandler)
     .get("/api/order/shopping-cart", jwtMiddleware, shoppingCartHandler)
-    .post("/api/order/checkout", jwtMiddleware, checkoutHandler);
+    .post("/api/order/checkout", jwtMiddleware, checkoutHandler)
 ;
 
 export default router;

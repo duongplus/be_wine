@@ -17,7 +17,7 @@ export const createOrder = async (order: Order) => {
 
 export const addWineToOrder = async (orderInfo: OrderInfo, phone: any) => {
     return await orderCollection.updateOne({
-        phone: phone
+        phone: phone, status: OrderStatus.PENDING
     }, {
         $push: {
             "wines": {orderInfo}
@@ -30,7 +30,7 @@ export const addMoreWineToOrder = async (phone: any, index: number, wines: Order
     // @ts-ignore
     wines[index]["orderInfo"].amount += 1;
     return await orderCollection.updateOne({
-            phone: phone,
+            phone: phone, status: OrderStatus.PENDING
         },
         {
             $set: {
@@ -42,9 +42,9 @@ export const addMoreWineToOrder = async (phone: any, index: number, wines: Order
 export const minusWineFromOrder = async (phone: any, index: number, wines: OrderInfo[]) => {
     // @ts-ignore
     const amount = wines[index]["orderInfo"].amount -= 1;
-    if(amount > 0) {
+    if (amount > 0) {
         return await orderCollection.updateOne({
-                phone: phone,
+                phone: phone, status: OrderStatus.PENDING
             },
             {
                 $set: {
@@ -54,7 +54,7 @@ export const minusWineFromOrder = async (phone: any, index: number, wines: Order
     }
     wines.splice(index, 1);
     return await orderCollection.updateOne({
-            phone: phone,
+            phone: phone, status: OrderStatus.PENDING
         },
         {
             $set: {
@@ -69,10 +69,14 @@ export const checkWineExist = async (phone: any, wineId: any) => {
     });
 };
 
-export const updateOrderStatus = async (phone: any) => {
+export const updateOrderStatus = async (phone: any, total: number) => {
+    const date: Date = new Date();
     return await orderCollection.updateOne({
-        phone: phone,
+        phone: phone, status: OrderStatus.PENDING,
     }, {
+        phone: phone,
+        total: total,
+        date: date,
         status: OrderStatus.CONFIRM,
     });
 };

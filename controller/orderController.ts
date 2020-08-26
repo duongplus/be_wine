@@ -1,4 +1,4 @@
-import {Status, STATUS_TEXT, Context} from "https://deno.land/x/oak/mod.ts";
+import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import {fetchPayload} from "../helper/token.ts";
 import {selectWineById} from "../repository/wineRepo.ts";
 import {Response} from "../helper/Response.ts"
@@ -6,8 +6,8 @@ import {Order, OrderInfo, OrderStatus} from "../model/order.ts";
 import {
     addMoreWineToOrder,
     addWineToOrder,
-    checkWineExist,
-    createOrder, minusWineFromOrder,
+    createOrder,
+    minusWineFromOrder,
     selectOrderByPhone,
     updateOrderStatus
 } from "../repository/orderRepo.ts";
@@ -69,14 +69,21 @@ export const addToCartHandler = async (context: any) => {
     // }
 
     console.log("no conflict")
-    const oderInfo: OrderInfo = {
-        wine: wine,
-        amount: 1,
+    if(order.status = OrderStatus.PENDING){
+        const oderInfo: OrderInfo = {
+            wine: wine,
+            amount: 1,
+        }
+        await addWineToOrder(oderInfo, data?.phone);
+        return Response(context, Status.OK, {
+            status: Status.OK,
+            message: STATUS_TEXT.get(Status.OK),
+        });
     }
-    await addWineToOrder(oderInfo, data?.phone);
-    return Response(context, Status.OK, {
-        status: Status.OK,
-        message: STATUS_TEXT.get(Status.OK),
+
+    return Response(context, Status.NotFound, {
+        status: Status.NotFound,
+        message: STATUS_TEXT.get(Status.NotFound),
     });
 };
 
@@ -138,7 +145,37 @@ export const minusFromCartHandler = async (context: any) => {
 
 export const checkoutHandler = async (context: Context) => {
     const data = await fetchPayload(context);
-    const upsertedId = await updateOrderStatus(data?.phone);
+
+    const order: Order = await selectOrderByPhone(data?.phone);
+    if(!order){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+
+    const wineExist = await selectOrderByPhone(data?.phone);
+    const _wines = wineExist["wines"];
+    const _objOrderInfo = [];
+    let _orderInfo = null;
+
+
+
+    if(_wines.length == 0){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+    let total:number = 0;
+    for(let i=0; i<_wines.length; i++) {
+        _objOrderInfo[i] = _wines[i];
+        _orderInfo = _objOrderInfo[i]["orderInfo"];
+        total += _orderInfo.wine.price*_orderInfo.amount;
+        console.log(total);
+    }
+
+    const upsertedId = await updateOrderStatus(data?.phone, total);
     if (!upsertedId) {
         return Response(context, Status.ExpectationFailed, {
             status: Status.ExpectationFailed,

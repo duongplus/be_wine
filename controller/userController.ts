@@ -154,9 +154,9 @@ export const changePasswordHandler = async (context: Context) => {
     reqData.newPass = encryptPass(reqData.newPass);
     const isChanged = changePassword(payload?.phone, reqData.newPass);
     if (!isChanged) {
-        return Response(context, 211, {
+        return Response(context, Status.NotFound, {
             status: Status.NotFound,
-            message: "Đ' đổi được"
+            message: STATUS_TEXT.get(Status.NotFound)
         })
     }
 
