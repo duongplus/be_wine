@@ -71,12 +71,54 @@ export const checkWineExist = async (phone: any, wineId: any) => {
 
 export const updateOrderStatus = async (phone: any, total: number) => {
     const date: Date = new Date();
+    date.setUTCHours(date.getUTCHours() + 7);
     return await orderCollection.updateOne({
         phone: phone, status: OrderStatus.PENDING,
     }, {
         phone: phone,
         total: total,
-        date: date,
+        date: date.toISOString(),
         status: OrderStatus.CONFIRM,
     });
 };
+
+export const selectOrderConfirmByMonth = async (m: any) => {
+    let month = m.toString();
+    if(month.length == 1) month = "0"+month;
+    const date: Date = new Date();
+    // date.setUTCHours(date.getUTCHours() + 7);
+    let year = date.getFullYear();
+    let gtDate = year + "-" + month + "-01";
+    let ltDate = "";
+    switch (m) {
+        case 2:
+            year % 400 == 0 || (year % 4 == 0 && year % 100 != 0) ?
+                ltDate = year + "-" + month + "-29" :
+                ltDate = year + "-" + month + "-28";
+            break;
+        case 4:
+            ltDate = year + "-" + month + "-30";
+            break;
+        case 6:
+            ltDate = year + "-" + month + "-30";
+            break;
+        case 9:
+            ltDate = year + "-" + month + "-30";
+            break;
+        case 11:
+            ltDate = year + "-" + month + "-30";
+            break;
+        default:
+            ltDate = year + "-" + month + "-31";
+            break;
+    }
+    const isoGtDate = new Date(gtDate);
+    isoGtDate.setHours(0,0,0);
+    const isoLtDate = new Date(ltDate);
+    isoLtDate.setHours(23,59,59);
+    return await orderCollection.find({
+            status: OrderStatus.CONFIRM,
+            date: {$gte: isoGtDate.toISOString(), $lt: isoLtDate.toISOString()}
+        }
+    )
+}

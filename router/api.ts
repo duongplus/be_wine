@@ -17,7 +17,7 @@ import {
 import {
     addToCartHandler,
     checkoutHandler,
-    minusFromCartHandler,
+    minusFromCartHandler, orderConfirmStatisticHandler,
     shoppingCartHandler
 } from "../controller/orderController.ts";
 
@@ -41,6 +41,7 @@ router
     .post("/api/order/minus-to-cart/:wineId", jwtMiddleware, minusFromCartHandler)
     .get("/api/order/shopping-cart", jwtMiddleware, shoppingCartHandler)
     .post("/api/order/checkout", jwtMiddleware, checkoutHandler)
+    .get("/api/order/statistic", jwtMiddleware, orderConfirmStatisticHandler)
 ;
 
 export default router;

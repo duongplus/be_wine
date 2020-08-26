@@ -7,7 +7,7 @@ import {
     addMoreWineToOrder,
     addWineToOrder,
     createOrder,
-    minusWineFromOrder,
+    minusWineFromOrder, selectOrderConfirmByMonth,
     selectOrderByPhone,
     updateOrderStatus
 } from "../repository/orderRepo.ts";
@@ -48,10 +48,10 @@ export const addToCartHandler = async (context: any) => {
     const _wines = wineExist["wines"];
     const _objOrderInfo = [];
     let _orderInfo = null;
-    for(let i=0; i<_wines.length; i++) {
+    for (let i = 0; i < _wines.length; i++) {
         _objOrderInfo[i] = _wines[i];
         _orderInfo = _objOrderInfo[i]["orderInfo"];
-        if(_orderInfo["wine"]._id.$oid == wineId){
+        if (_orderInfo["wine"]._id.$oid == wineId) {
             const w = await addMoreWineToOrder(data?.phone, i, _wines)
             console.log(w)
             return Response(context, Status.Accepted, {
@@ -69,7 +69,7 @@ export const addToCartHandler = async (context: any) => {
     // }
 
     console.log("no conflict")
-    if(order.status = OrderStatus.PENDING){
+    if (order.status = OrderStatus.PENDING) {
         const oderInfo: OrderInfo = {
             wine: wine,
             amount: 1,
@@ -100,7 +100,7 @@ export const minusFromCartHandler = async (context: any) => {
     }
 
     const order: Order = await selectOrderByPhone(data?.phone);
-    if(!order){
+    if (!order) {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
@@ -112,19 +112,19 @@ export const minusFromCartHandler = async (context: any) => {
     const _objOrderInfo = [];
     let _orderInfo = null;
 
-    if(_wines.length==0){
+    if (_wines.length == 0) {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
         });
     }
-    for(let i=0; i<_wines.length; i++) {
+    for (let i = 0; i < _wines.length; i++) {
         _objOrderInfo[i] = _wines[i];
         _orderInfo = _objOrderInfo[i]["orderInfo"];
-        if(_orderInfo["wine"]._id.$oid == wineId){
+        if (_orderInfo["wine"]._id.$oid == wineId) {
             const w = await minusWineFromOrder(data?.phone, i, _wines)
             console.log(w)
-            if(!w){
+            if (!w) {
                 return Response(context, Status.NotFound, {
                     status: Status.NotFound,
                     message: STATUS_TEXT.get(Status.NotFound),
@@ -147,7 +147,7 @@ export const checkoutHandler = async (context: Context) => {
     const data = await fetchPayload(context);
 
     const order: Order = await selectOrderByPhone(data?.phone);
-    if(!order){
+    if (!order) {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
@@ -160,18 +160,17 @@ export const checkoutHandler = async (context: Context) => {
     let _orderInfo = null;
 
 
-
-    if(_wines.length == 0){
+    if (_wines.length == 0) {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
         });
     }
-    let total:number = 0;
-    for(let i=0; i<_wines.length; i++) {
+    let total: number = 0;
+    for (let i = 0; i < _wines.length; i++) {
         _objOrderInfo[i] = _wines[i];
         _orderInfo = _objOrderInfo[i]["orderInfo"];
-        total += _orderInfo.wine.price*_orderInfo.amount;
+        total += _orderInfo.wine.price * _orderInfo.amount;
         console.log(total);
     }
 
@@ -208,3 +207,17 @@ export const shoppingCartHandler = async (context: Context) => {
         },
     });
 };
+
+export const orderConfirmStatisticHandler = async (context: any) => {
+    const data = await fetchPayload(context);
+
+    const ocs = await selectOrderConfirmByMonth(8);
+    console.log(ocs);
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: {
+            order: ocs,
+        },
+    });
+}
