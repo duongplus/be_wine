@@ -12,6 +12,8 @@ import {
     updateOrderStatus
 } from "../repository/orderRepo.ts";
 import {Wine} from "../model/wine.ts";
+import {User} from "../model/user.ts";
+import {selectUserByPhone, updatePointMember} from "../repository/userRepo.ts";
 
 export const addToCartHandler = async (context: any) => {
     const data = await fetchPayload(context);
@@ -145,7 +147,7 @@ export const minusFromCartHandler = async (context: any) => {
 
 export const checkoutHandler = async (context: Context) => {
     const data = await fetchPayload(context);
-
+    const user: User = await selectUserByPhone(data?.phone);
     const order: Order = await selectOrderByPhone(data?.phone);
     if (!order) {
         return Response(context, Status.NotFound, {
@@ -174,12 +176,25 @@ export const checkoutHandler = async (context: Context) => {
         console.log(total);
     }
 
-    const upsertedId = await updateOrderStatus(data?.phone, total);
+    const upsertedId = await updateOrderStatus(data?.phone, total, user);
     if (!upsertedId) {
         return Response(context, Status.ExpectationFailed, {
             status: Status.ExpectationFailed,
             message: STATUS_TEXT.get(Status.ExpectationFailed),
         });
+    }
+
+    const point = total/1000;
+    console.log(point);
+    if(point >= 1){
+        const updatedPoint = updatePointMember(data?.phone, point);
+        console.log(updatedPoint);
+        if(!updatedPoint) {
+            return Response(context, Status.ExpectationFailed, {
+                status: Status.ExpectationFailed,
+                message: STATUS_TEXT.get(Status.ExpectationFailed),
+            });
+        }
     }
 
     return Response(context, Status.OK, {

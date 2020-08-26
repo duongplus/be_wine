@@ -34,8 +34,6 @@ export const signInHandler = async (context: Context) => {
         message: STATUS_TEXT.get(Status.OK),
         data: {
             displayName: user.displayName,
-            role: user.role,
-            avatar: user.avatar,
             token: genToken({
                 phone: user.phone,
             })
@@ -55,6 +53,7 @@ export const signUpHandler = async (context: Context) => {
         })
     }
     reqData.role = ROLE.MEMBER;
+    reqData.point = 0;
     reqData.password = encryptPass(reqData.password);
     if (reqData.phone == "0933505575") {
         reqData.role = ROLE.ADMIN
@@ -76,6 +75,7 @@ export const signUpHandler = async (context: Context) => {
             displayName: user.displayName,
             role: user.role,
             avatar: user.avatar,
+            point: user.point,
             token: genToken({
                 phone: user.phone,
             })
@@ -99,6 +99,7 @@ export const profileHandler = async (context: Context) => {
         message: STATUS_TEXT.get(Status.OK),
         data: {
             displayName: user.displayName,
+            point: user.role,
             role: user.role,
             avatar: user.avatar,
         }

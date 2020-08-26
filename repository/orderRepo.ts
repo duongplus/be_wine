@@ -1,6 +1,7 @@
 import Db from "../db/database.ts";
 import {Order, OrderInfo, OrderStatus} from "../model/order.ts";
 import {Wine} from "../model/wine.ts";
+import {User} from "../model/user.ts";
 
 const orderCollection = Db.collection("orders");
 
@@ -69,14 +70,29 @@ export const checkWineExist = async (phone: any, wineId: any) => {
     });
 };
 
-export const updateOrderStatus = async (phone: any, total: number) => {
+export const updateOrderStatus = async (phone: any, total: number, user: User) => {
     const date: Date = new Date();
     date.setUTCHours(date.getUTCHours() + 7);
+    let percentDiscount = 0;
+    if(user.point>250){
+        percentDiscount = 10;
+    } else if(user.point>500){
+        percentDiscount = 15;
+    }else if(user.point>1000){
+        percentDiscount = 20;
+    }else{
+        percentDiscount = 0;
+    }
+    const discount = total*(percentDiscount/100);
+    const netTotal = total - discount;
     return await orderCollection.updateOne({
         phone: phone, status: OrderStatus.PENDING,
     }, {
         phone: phone,
         total: total,
+        percentDiscount: percentDiscount,
+        discount: discount,
+        netTotal: netTotal,
         date: date.toISOString(),
         status: OrderStatus.CONFIRM,
     });
@@ -84,7 +100,7 @@ export const updateOrderStatus = async (phone: any, total: number) => {
 
 export const selectOrderConfirmByMonth = async (m: any) => {
     let month = m.toString();
-    if(month.length == 1) month = "0"+month;
+    if (month.length == 1) month = "0" + month;
     const date: Date = new Date();
     // date.setUTCHours(date.getUTCHours() + 7);
     let year = date.getFullYear();
@@ -113,9 +129,9 @@ export const selectOrderConfirmByMonth = async (m: any) => {
             break;
     }
     const isoGtDate = new Date(gtDate);
-    isoGtDate.setHours(0,0,0);
+    isoGtDate.setHours(0, 0, 0);
     const isoLtDate = new Date(ltDate);
-    isoLtDate.setHours(23,59,59);
+    isoLtDate.setHours(23, 59, 59);
     return await orderCollection.find({
             status: OrderStatus.CONFIRM,
             date: {$gte: isoGtDate.toISOString(), $lt: isoLtDate.toISOString()}

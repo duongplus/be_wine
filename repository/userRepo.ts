@@ -23,3 +23,13 @@ export const changePassword = async (phone: any, pass: string) => {
             }
         })
 }
+
+export const updatePointMember = async (phone: any, point: number) => {
+    return await userCollection.updateOne({
+        phone:phone,
+    }, {
+        $inc: {
+            point: point
+        }
+    })
+}
