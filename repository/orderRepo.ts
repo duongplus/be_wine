@@ -26,6 +26,21 @@ export const addWineToOrder = async (orderInfo: OrderInfo, phone: any) => {
     })
 }
 
+export const updateAmountWineInOrder = async (phone: any, index: number, wines: OrderInfo[], amount: number) => {
+    // @ts-ignore
+    wines[index]["orderInfo"].amount = amount;
+    // @ts-ignore
+    wines[index]["orderInfo"].wine.capacity = amount;
+    return await orderCollection.updateOne({
+            phone: phone, status: OrderStatus.PENDING
+        },
+        {
+            $set: {
+                wines: wines
+            }
+        })
+}
+
 export const addMoreWineToOrder = async (phone: any, index: number, wines: OrderInfo[]) => {
     // const query = "wines."+index+".orderInfo.amount:1";
     // @ts-ignore
@@ -64,26 +79,26 @@ export const minusWineFromOrder = async (phone: any, index: number, wines: Order
         });
 }
 
-export const checkWineExist = async (phone: any, wineId: any) => {
-    return await orderCollection.find({
-        phone: phone,
-    });
-};
+// export const checkWineExist = async (phone: any, wineId: any) => {
+//     return await orderCollection.find({
+//         phone: phone,
+//     });
+// };
 
 export const updateOrderStatus = async (phone: any, total: number, user: User) => {
     const date: Date = new Date();
     date.setUTCHours(date.getUTCHours() + 7);
     let percentDiscount = 0;
-    if(user.point>250){
+    if (user.point > 250) {
         percentDiscount = 10;
-    } else if(user.point>500){
+    } else if (user.point > 500) {
         percentDiscount = 15;
-    }else if(user.point>1000){
+    } else if (user.point > 1000) {
         percentDiscount = 20;
-    }else{
+    } else {
         percentDiscount = 0;
     }
-    const discount = total*(percentDiscount/100);
+    const discount = total * (percentDiscount / 100);
     const netTotal = total - discount;
     return await orderCollection.updateOne({
         phone: phone, status: OrderStatus.PENDING,

@@ -7,4 +7,5 @@ export interface Wine {
     thumbnail: string;
     price: number;
     cateID: string;
+    capacity: number;
 }

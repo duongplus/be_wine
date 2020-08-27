@@ -1,7 +1,13 @@
 import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import {Response} from "../helper/Response.ts"
 import {Wine} from "../model/wine.ts";
-import {saveWine, selectWineByCateId, selectWineById} from "../repository/wineRepo.ts"
+import {
+    checkWineExist,
+    saveWine,
+    selectWineByCateId,
+    selectWineById,
+    updateCapacityWine
+} from "../repository/wineRepo.ts"
 import {fetchPayload} from "../helper/token.ts";
 import {ROLE, User} from "../model/user.ts";
 import {selectUserByPhone} from "../repository/userRepo.ts";
@@ -67,7 +73,20 @@ export const addWineHandler = async (context: Context) => {
 
     const body = await context.request.body()
     const wine: Wine = body.value
-
+    const wineExist = await checkWineExist(wine);
+    if(wineExist){
+        const updatedWine = await updateCapacityWine(wineExist._id.$oid, wine.capacity)
+        if(!updatedWine) {
+            return Response(context, Status.ExpectationFailed, {
+                status: Status.ExpectationFailed,
+                message: STATUS_TEXT.get(Status.ExpectationFailed)
+            })
+        }
+        return Response(context, Status.Accepted, {
+            status: Status.Accepted,
+            message: STATUS_TEXT.get(Status.Accepted),
+        })
+    }
     if (!wine) {
         return Response(context, Status.BadRequest, {
             status: Status.BadRequest,

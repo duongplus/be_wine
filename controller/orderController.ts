@@ -1,6 +1,6 @@
 import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import {fetchPayload} from "../helper/token.ts";
-import {selectWineById} from "../repository/wineRepo.ts";
+import {selectWineById, updateCapacityWineById} from "../repository/wineRepo.ts";
 import {Response} from "../helper/Response.ts"
 import {Order, OrderInfo, OrderStatus} from "../model/order.ts";
 import {
@@ -9,7 +9,7 @@ import {
     createOrder,
     minusWineFromOrder, selectOrderConfirmByMonth,
     selectOrderByPhone,
-    updateOrderStatus
+    updateOrderStatus, updateAmountWineInOrder
 } from "../repository/orderRepo.ts";
 import {Wine} from "../model/wine.ts";
 import {User} from "../model/user.ts";
@@ -24,6 +24,13 @@ export const addToCartHandler = async (context: any) => {
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+
+    if((wine.capacity == 0)) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: "Hết rượu",
         });
     }
 
@@ -54,12 +61,25 @@ export const addToCartHandler = async (context: any) => {
         _objOrderInfo[i] = _wines[i];
         _orderInfo = _objOrderInfo[i]["orderInfo"];
         if (_orderInfo["wine"]._id.$oid == wineId) {
-            const w = await addMoreWineToOrder(data?.phone, i, _wines)
-            console.log(w)
-            return Response(context, Status.Accepted, {
-                status: Status.Accepted,
-                message: STATUS_TEXT.get(Status.Accepted),
+            if (_orderInfo["wine"].capacity <= 0) {
+                return Response(context, Status.NotFound, {
+                    status: Status.NotFound,
+                    message: STATUS_TEXT.get(Status.NotFound),
+                });
+            }
+            if (_orderInfo["amount"] < _orderInfo["wine"].capacity) {
+                const w = await addMoreWineToOrder(data?.phone, i, _wines)
+                console.log(w)
+                return Response(context, Status.Accepted, {
+                    status: Status.Accepted,
+                    message: STATUS_TEXT.get(Status.Accepted),
+                });
+            }
+            return Response(context, Status.NotAcceptable, {
+                status: Status.NotAcceptable,
+                message: STATUS_TEXT.get(Status.NotAcceptable),
             });
+
         }
     }
 
@@ -127,6 +147,7 @@ export const minusFromCartHandler = async (context: any) => {
             const w = await minusWineFromOrder(data?.phone, i, _wines)
             console.log(w)
             if (!w) {
+                console.log("minusWineFromOrder")
                 return Response(context, Status.NotFound, {
                     status: Status.NotFound,
                     message: STATUS_TEXT.get(Status.NotFound),
@@ -138,7 +159,7 @@ export const minusFromCartHandler = async (context: any) => {
             });
         }
     }
-
+    console.log("last minus")
     return Response(context, Status.NotFound, {
         status: Status.NotFound,
         message: STATUS_TEXT.get(Status.NotFound),
@@ -157,17 +178,82 @@ export const checkoutHandler = async (context: Context) => {
     }
 
     const wineExist = await selectOrderByPhone(data?.phone);
-    const _wines = wineExist["wines"];
-    const _objOrderInfo = [];
+    let _wines = wineExist["wines"];
+    let _objOrderInfo = [];
     let _orderInfo = null;
 
-
     if (_wines.length == 0) {
+        console.log("_wines.length == 0")
         return Response(context, Status.NotFound, {
             status: Status.NotFound,
             message: STATUS_TEXT.get(Status.NotFound),
         });
     }
+
+    _orderInfo = null;
+    for (let i = 0; i < _wines.length; i++) {
+        _objOrderInfo[i] = _wines[i];
+        _orderInfo = _objOrderInfo[i]["orderInfo"];
+        const wine: Wine = await selectWineById(_orderInfo.wine._id.$oid)
+        if(wine.capacity <=0 ){
+            console.log("wine.capacity", wine.capacity)
+            const deleteWine = await minusWineFromOrder(data?.phone, i, _wines)
+            if(!deleteWine) {
+                return Response(context, Status.ExpectationFailed, {
+                    status: Status.ExpectationFailed,
+                    message: STATUS_TEXT.get(Status.ExpectationFailed),
+                });
+            }
+            return Response(context, Status.NotAcceptable, {
+                status: Status.NotAcceptable,
+                message: STATUS_TEXT.get(Status.NotAcceptable),
+                data: _wines
+            });
+
+        }
+        if (_orderInfo.amount > wine.capacity) {
+            console.log(wine.capacity)
+            console.log("_orderInfo.amount > _orderInfo.wine.capacity")
+            const updatedAmount = await updateAmountWineInOrder(data?.phone, i, _wines, wine.capacity)
+            console.log(updatedAmount)
+            if (!updatedAmount) {
+                return Response(context, Status.ExpectationFailed, {
+                    status: Status.ExpectationFailed,
+                    message: STATUS_TEXT.get(Status.ExpectationFailed),
+                });
+            }
+            return Response(context, Status.NotAcceptable, {
+                status: Status.NotAcceptable,
+                message: STATUS_TEXT.get(Status.NotAcceptable),
+            });
+        }
+    }
+
+    _orderInfo = null;
+    for (let i = 0; i < _wines.length; i++) {
+        _objOrderInfo[i] = _wines[i];
+        _orderInfo = _objOrderInfo[i]["orderInfo"];
+        // if(_orderInfo.wine.capacity <= 0) {
+        //     console.log("_orderInfo.wine.capacity <= 0")
+        //     const deleteWine = await minusWineFromOrder(data?.phone, i, _wines)
+        //     if(!deleteWine) {
+        //         return Response(context, Status.ExpectationFailed, {
+        //             status: Status.ExpectationFailed,
+        //             message: STATUS_TEXT.get(Status.ExpectationFailed),
+        //         });
+        //     }
+        // }
+        const updateCapacity = await updateCapacityWineById(_orderInfo.wine._id.$oid, -(_orderInfo.amount))
+        console.log("-(_orderInfo.amount)", -(_orderInfo.amount))
+        if (!updateCapacity) {
+            console.log("!updateCapacity")
+            return Response(context, Status.ExpectationFailed, {
+                status: Status.ExpectationFailed,
+                message: STATUS_TEXT.get(Status.ExpectationFailed),
+            });
+        }
+    }
+
     let total: number = 0;
     for (let i = 0; i < _wines.length; i++) {
         _objOrderInfo[i] = _wines[i];
@@ -176,25 +262,25 @@ export const checkoutHandler = async (context: Context) => {
         console.log(total);
     }
 
+    const point = total / 1000;
+    console.log(point);
+    if (point >= 1) {
+        const updatedPoint = updatePointMember(data?.phone, point);
+        console.log(updatedPoint);
+        if (!updatedPoint) {
+            return Response(context, Status.ExpectationFailed, {
+                status: Status.ExpectationFailed,
+                message: STATUS_TEXT.get(Status.ExpectationFailed),
+            });
+        }
+    }
+
     const upsertedId = await updateOrderStatus(data?.phone, total, user);
     if (!upsertedId) {
         return Response(context, Status.ExpectationFailed, {
             status: Status.ExpectationFailed,
             message: STATUS_TEXT.get(Status.ExpectationFailed),
         });
-    }
-
-    const point = total/1000;
-    console.log(point);
-    if(point >= 1){
-        const updatedPoint = updatePointMember(data?.phone, point);
-        console.log(updatedPoint);
-        if(!updatedPoint) {
-            return Response(context, Status.ExpectationFailed, {
-                status: Status.ExpectationFailed,
-                message: STATUS_TEXT.get(Status.ExpectationFailed),
-            });
-        }
     }
 
     return Response(context, Status.OK, {
