@@ -322,3 +322,30 @@ export const orderConfirmStatisticHandler = async (context: any) => {
         },
     });
 }
+
+export const getCountOrder = async (context: any) => {
+    const data = await fetchPayload(context);
+
+    let count:number = 0;
+    const wineOrderExist = await selectOrderByPhone(data?.phone);
+    if(!wineOrderExist) {
+        return Response(context, Status.OK, {
+            status: Status.OK,
+            message: STATUS_TEXT.get(Status.OK),
+            data: 0,
+        });
+    }
+    const _wine = wineOrderExist["wines"];
+    const _orderInfoObject = []
+    let _orderInfo = null;
+    for(let i = 0; i< _wine.length; i++){
+        _orderInfoObject[i] = _wine[i];
+        _orderInfo = _orderInfoObject[i]["orderInfo"];
+        count += _orderInfo.amount;
+    }
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: count,
+    });
+}
