@@ -1,6 +1,6 @@
 import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import Db from "../db/database.ts";
-import {changePassword, saveUser, selectUserByPhone} from "../repository/userRepo.ts";
+import {changeDisplayName, changePassword, findAllUser, saveUser, selectUserByPhone} from "../repository/userRepo.ts";
 import {Response} from "../helper/Response.ts"
 import {encryptPass, verifyPass} from "../security/pass.ts";
 import {ROLE, User} from "../model/user.ts";
@@ -26,6 +26,21 @@ export const signInHandler = async (context: Context) => {
         return Response(context, Status.Unauthorized, {
             status: Status.Unauthorized,
             message: STATUS_TEXT.get(Status.Unauthorized)
+        })
+    }
+
+    if (user.role == ROLE.ADMIN) {
+        return Response(context, Status.OK, {
+            status: Status.OK,
+            message: STATUS_TEXT.get(Status.OK),
+            data: {
+                displayName: user.displayName,
+                role: user.role,
+                token: genToken({
+                    phone: user.phone,
+                    role: user.role,
+                }),
+            }
         })
     }
 
@@ -98,8 +113,9 @@ export const profileHandler = async (context: Context) => {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
         data: {
+            phone: user.phone,
             displayName: user.displayName,
-            point: user.role,
+            point: user.point,
             role: user.role,
             avatar: user.avatar,
         }
@@ -140,18 +156,16 @@ export const changePasswordHandler = async (context: Context) => {
     const reqData = body.value
     const payload = await fetchPayload(context);
     const user: User = await selectUserByPhone(payload?.phone);
-    console.log(payload?.phone)
     //verify pass
     const passIsValid = verifyPass(reqData.password, user.password);
-    console.log(passIsValid)
     if (!passIsValid) {
         return Response(context, Status.Unauthorized, {
             status: Status.Unauthorized,
             message: STATUS_TEXT.get(Status.Unauthorized)
         })
     }
-    console.log(reqData.password)
-    console.log(reqData.newPass)
+    // console.log(reqData.password)
+    // console.log(reqData.newPass)
     reqData.newPass = encryptPass(reqData.newPass);
     const isChanged = changePassword(payload?.phone, reqData.newPass);
     if (!isChanged) {
@@ -166,4 +180,62 @@ export const changePasswordHandler = async (context: Context) => {
         message: "OK"
     })
 
+}
+
+export const changeDisplayNameHandler = async (context: Context) => {
+    const body = await context.request.body()
+    const reqData = body.value
+    const payload = await fetchPayload(context);
+    // const user: User = await selectUserByPhone(payload?.phone);
+    //verify pass
+    // const passIsValid = verifyPass(reqData.password, user.password);
+    // if (!passIsValid) {
+    //     return Response(context, Status.Unauthorized, {
+    //         status: Status.Unauthorized,
+    //         message: STATUS_TEXT.get(Status.Unauthorized)
+    //     })
+    // }
+    // console.log(reqData.password)
+    // console.log(reqData.newPass)
+    // reqData.newPass = encryptPass(reqData.newPass);
+    const isChanged = changeDisplayName(payload?.phone, reqData.name);
+    if (!isChanged) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound)
+        })
+    }
+
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: "OK"
+    })
+
+}
+
+
+export const getAllUserHandler = async (context: any) => {
+    const payload = await fetchPayload(context);
+
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (!user) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound)
+        })
+    }
+
+    if (!(payload?.role  == ROLE.ADMIN)){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: "Permission deny",
+        })
+    }
+
+    const us = await findAllUser();
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: us,
+    })
 }

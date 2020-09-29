@@ -24,6 +24,17 @@ export const changePassword = async (phone: any, pass: string) => {
         })
 }
 
+export const changeDisplayName = async (phone: any, name: string) => {
+    return await userCollection.updateOne({
+            phone: phone
+        },
+        {
+            $set: {
+                displayName: name
+            }
+        })
+}
+
 export const updatePointMember = async (phone: any, point: number) => {
     return await userCollection.updateOne({
         phone:phone,
@@ -32,4 +43,8 @@ export const updatePointMember = async (phone: any, point: number) => {
             point: point
         }
     })
+}
+
+export const findAllUser = async () =>{
+    return userCollection.find();
 }

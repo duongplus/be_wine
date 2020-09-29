@@ -4,7 +4,7 @@ import {
     signInHandler,
     signUpHandler,
     checkAdminHandler,
-    changePasswordHandler
+    changePasswordHandler, changeDisplayNameHandler, getAllUserHandler
 } from "../controller/userController.ts";
 import {jwtMiddleware} from "../middleware/jwtMiddleware.ts";
 import {
@@ -12,7 +12,7 @@ import {
     addWineHandler,
     wineDetailHandler,
     wineCateHandler,
-    exportAnImage
+    exportAnImage, wineUpdateHandler
 } from "../controller/wineController.ts";
 import {
     addToCartHandler,
@@ -26,6 +26,8 @@ router
     .post("/api/user/sign-in", signInHandler)
     .post("/api/user/sign-up", signUpHandler)
     .post("/api/user/change-pass", jwtMiddleware, changePasswordHandler)
+    .post("/api/user/change-name", jwtMiddleware, changeDisplayNameHandler)
+    .get("/api/user/all-user", jwtMiddleware, getAllUserHandler)
     .get("/image", exportAnImage)
     //=> {
     //         // exportAnImage.response.headers.set('Content-Type', 'image/png');
@@ -35,10 +37,11 @@ router
     .get("/api/user/profile", jwtMiddleware, profileHandler)
     .get("/api/wine/list", wineListHandler)
     .post("/api/wine/add", jwtMiddleware, addWineHandler)
+    .post("/api/wine/update/:wineId", jwtMiddleware, wineUpdateHandler)
     .get("/api/wine/detail/:id", wineDetailHandler)
     .get("/api/wine/cate/:cateId", wineCateHandler)
     .post("/api/order/add-to-cart/:wineId", jwtMiddleware, addToCartHandler)
-    .post("/api/order/minus-to-cart/:wineId", jwtMiddleware, minusFromCartHandler)
+    .post("/api/order/minus-from-cart/:wineId", jwtMiddleware, minusFromCartHandler)
     .get("/api/order/shopping-cart", jwtMiddleware, shoppingCartHandler)
     .post("/api/order/checkout", jwtMiddleware, checkoutHandler)
     .get("/api/order/statistic/:month", jwtMiddleware, orderConfirmStatisticHandler)

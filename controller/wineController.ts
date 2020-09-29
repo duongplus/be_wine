@@ -6,7 +6,7 @@ import {
     saveWine,
     selectWineByCateId,
     selectWineById,
-    updateCapacityWine
+    updateCapacityWine, updateWine
 } from "../repository/wineRepo.ts"
 import {fetchPayload} from "../helper/token.ts";
 import {ROLE, User} from "../model/user.ts";
@@ -26,19 +26,19 @@ export const wineListHandler = async (context: Context) => {
     const cates = [
         {
             "cateId": "1",
-            "cateName": "Red Wines"
+            "cateName": "Vang Đỏ"
         },
         {
             "cateId": "2",
-            "cateName": "White Wines"
+            "cateName": "Vang Trắng"
         },
         {
             "cateId": "3",
-            "cateName": "Rose Wines"
+            "cateName": "Vang Hồng"
         },
         {
             "cateId": "4",
-            "cateName": "Orange Wines"
+            "cateName": "Vang Cam"
         },
         {
             "cateId": "5",
@@ -46,11 +46,11 @@ export const wineListHandler = async (context: Context) => {
         },
         {
             "cateId": "6",
-            "cateName": "Sparking Wines"
+            "cateName": "Vang Sủi"
         },
         {
             "cateId": "7",
-            "cateName": "Fortified Wines"
+            "cateName": "Vang Mạnh"
         },
     ]
 
@@ -137,4 +137,30 @@ export const wineCateHandler = async (context: any) => {
         message: STATUS_TEXT.get(Status.OK),
         data: wines,
     });
+}
+
+export const wineUpdateHandler = async  (context:any) => {
+    const { wineId } = context.params as { wineId: string };
+    const payload = await fetchPayload(context);
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (user.role != ROLE.ADMIN) {
+        return Response(context, Status.Unauthorized, {
+            status: Status.Unauthorized,
+            message: "Permission deny"
+        })
+    }
+    const body = await context.request.body()
+    const reqData = body.value
+    const wine: Wine = reqData;
+    const isUpdate = await updateWine(wineId, wine);
+    if(!isUpdate){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: "update fail"
+        })
+    }
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+    })
 }

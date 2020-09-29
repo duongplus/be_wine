@@ -85,16 +85,16 @@ export const minusWineFromOrder = async (phone: any, index: number, wines: Order
 //     });
 // };
 
-export const updateOrderStatus = async (phone: any, total: number, user: User) => {
+export const updateOrderStatus = async (phone: any, total: number, user: User, wines: any) => {
     const date: Date = new Date();
     date.setUTCHours(date.getUTCHours() + 7);
     let percentDiscount = 0;
-    if (user.point > 250) {
-        percentDiscount = 10;
+    if (user.point > 1000) {
+        percentDiscount = 20;
     } else if (user.point > 500) {
         percentDiscount = 15;
-    } else if (user.point > 1000) {
-        percentDiscount = 20;
+    } else if (user.point > 250) {
+        percentDiscount = 10;
     } else {
         percentDiscount = 0;
     }
@@ -110,6 +110,7 @@ export const updateOrderStatus = async (phone: any, total: number, user: User) =
         netTotal: netTotal,
         date: date.toISOString(),
         status: OrderStatus.CONFIRM,
+        wines: wines
     });
 };
 

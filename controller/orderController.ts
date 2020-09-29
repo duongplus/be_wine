@@ -14,6 +14,7 @@ import {
 import {Wine} from "../model/wine.ts";
 import {User} from "../model/user.ts";
 import {selectUserByPhone, updatePointMember} from "../repository/userRepo.ts";
+import {ROLE} from "../model/user.ts";
 
 export const addToCartHandler = async (context: any) => {
     const data = await fetchPayload(context);
@@ -262,7 +263,7 @@ export const checkoutHandler = async (context: Context) => {
         console.log(total);
     }
 
-    const point = total / 1000;
+    const point = total / 100000;
     console.log(point);
     if (point >= 1) {
         const updatedPoint = updatePointMember(data?.phone, point);
@@ -275,7 +276,7 @@ export const checkoutHandler = async (context: Context) => {
         }
     }
 
-    const upsertedId = await updateOrderStatus(data?.phone, total, user);
+    const upsertedId = await updateOrderStatus(data?.phone, total, user, _wines);
     if (!upsertedId) {
         return Response(context, Status.ExpectationFailed, {
             status: Status.ExpectationFailed,
@@ -310,9 +311,17 @@ export const shoppingCartHandler = async (context: Context) => {
 };
 
 export const orderConfirmStatisticHandler = async (context: any) => {
-    const data = await fetchPayload(context);
+    const payload = await fetchPayload(context);
 
-    const ocs = await selectOrderConfirmByMonth(8);
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (user.role != ROLE.ADMIN) {
+        return Response(context, Status.Unauthorized, {
+            status: Status.Unauthorized,
+            message: "Permission deny"
+        })
+    }
+    const { month } = context.params as { month: string };
+    const ocs = await selectOrderConfirmByMonth(month);
     console.log(ocs);
     return Response(context, Status.OK, {
         status: Status.OK,
@@ -343,6 +352,7 @@ export const getCountOrder = async (context: any) => {
         _orderInfo = _orderInfoObject[i]["orderInfo"];
         count += _orderInfo.amount;
     }
+    console.log("get count")
     return Response(context, Status.OK, {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),

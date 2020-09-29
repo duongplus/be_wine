@@ -3,6 +3,7 @@ export interface Wine {
     producer: string;
     country: string;
     alcohol: string;
+    size: number;
     description: string;
     thumbnail: string;
     price: number;

@@ -9,16 +9,16 @@ export const saveWine = async (wine: Wine) => {
 
 export const checkWineExist = async (wine: Wine) => {
     return wineCollection.findOne({
-        name:wine.name,
+        name: wine.name,
         producer: wine.producer,
-        alcohol:wine.alcohol,
+        alcohol: wine.alcohol,
     })
 }
 
-export const updateCapacityWine = async (wineId:any, capacity: number) => {
+export const updateCapacityWine = async (wineId: any, capacity: number) => {
     return await wineCollection.updateOne({
-        _id:{$oid: wineId}
-    },{
+        _id: {$oid: wineId}
+    }, {
         $inc: {capacity: capacity}
     })
 }
@@ -43,8 +43,29 @@ export const updateCapacityWineById = async (wineId: any, amount: number) => {
             $oid: wineId,
         }
     }, {
-        $inc:{
+        $inc: {
             capacity: amount
+        }
+    })
+}
+
+export const updateWine = async (wineId: any, wine: Wine) => {
+    return await wineCollection.updateOne({
+        _id: {
+            $oid: wineId,
+        }
+    }, {
+        $set: {
+            name: wine.name,
+            producer: wine.producer,
+            country: wine.country,
+            alcohol: wine.alcohol,
+            description: wine.description,
+            thumbnail: wine.thumbnail,
+            price: wine.price,
+            cateID: wine.cateID,
+            capacity: wine.capacity,
+            size: wine.size,
         }
     })
 }
