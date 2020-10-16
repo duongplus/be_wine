@@ -1,6 +1,13 @@
 import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import Db from "../db/database.ts";
-import {changeDisplayName, changePassword, findAllUser, saveUser, selectUserByPhone} from "../repository/userRepo.ts";
+import {
+    changeDisplayName,
+    changePassword,
+    findAllUser,
+    passwordRecovery,
+    saveUser,
+    selectUserByPhone
+} from "../repository/userRepo.ts";
 import {Response} from "../helper/Response.ts"
 import {encryptPass, verifyPass} from "../security/pass.ts";
 import {ROLE, User} from "../model/user.ts";
@@ -237,5 +244,40 @@ export const getAllUserHandler = async (context: any) => {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
         data: us,
+    })
+}
+
+
+export const passwordRecoveryHandler = async (context: any) => {
+    const payload = await fetchPayload(context);
+
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (!user) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound)
+        })
+    }
+
+    if (!(payload?.role  == ROLE.ADMIN)){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: "Permission deny",
+        })
+    }
+
+    const body = await context.request.body()
+    const reqData = body.value
+    const newPass = encryptPass("123456");
+    const isRecovery = await passwordRecovery(reqData.phone,newPass);
+    if(!isRecovery) {
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        })
+    }
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
     })
 }

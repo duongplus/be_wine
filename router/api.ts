@@ -4,7 +4,7 @@ import {
     signInHandler,
     signUpHandler,
     checkAdminHandler,
-    changePasswordHandler, changeDisplayNameHandler, getAllUserHandler
+    changePasswordHandler, changeDisplayNameHandler, getAllUserHandler, passwordRecoveryHandler
 } from "../controller/userController.ts";
 import {jwtMiddleware} from "../middleware/jwtMiddleware.ts";
 import {
@@ -12,11 +12,11 @@ import {
     addWineHandler,
     wineDetailHandler,
     wineCateHandler,
-    exportAnImage, wineUpdateHandler
+    exportAnImage, wineUpdateHandler, addCateHandler, findAllWineHandler
 } from "../controller/wineController.ts";
 import {
     addToCartHandler,
-    checkoutHandler, getCountOrder,
+    checkoutHandler, getCountOrder, historyHandler,
     minusFromCartHandler, orderConfirmStatisticHandler,
     shoppingCartHandler
 } from "../controller/orderController.ts";
@@ -28,6 +28,7 @@ router
     .post("/api/user/change-pass", jwtMiddleware, changePasswordHandler)
     .post("/api/user/change-name", jwtMiddleware, changeDisplayNameHandler)
     .get("/api/user/all-user", jwtMiddleware, getAllUserHandler)
+    .post("/api/user/password-recovery", jwtMiddleware, passwordRecoveryHandler)
     .get("/image", exportAnImage)
     //=> {
     //         // exportAnImage.response.headers.set('Content-Type', 'image/png');
@@ -35,6 +36,8 @@ router
     //     }
     .get("/api/check", jwtMiddleware, checkAdminHandler)
     .get("/api/user/profile", jwtMiddleware, profileHandler)
+    .post("/api/wine/add-cate", jwtMiddleware, addCateHandler)
+    .get("/api/wine/all-wine", findAllWineHandler)
     .get("/api/wine/list", wineListHandler)
     .post("/api/wine/add", jwtMiddleware, addWineHandler)
     .post("/api/wine/update/:wineId", jwtMiddleware, wineUpdateHandler)
@@ -46,6 +49,7 @@ router
     .post("/api/order/checkout", jwtMiddleware, checkoutHandler)
     .get("/api/order/statistic/:month", jwtMiddleware, orderConfirmStatisticHandler)
     .get("/api/order/count", jwtMiddleware, getCountOrder)
+    .get("/api/user/history", jwtMiddleware, historyHandler)
 ;
 
 export default router;

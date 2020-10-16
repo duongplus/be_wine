@@ -48,3 +48,14 @@ export const updatePointMember = async (phone: any, point: number) => {
 export const findAllUser = async () =>{
     return userCollection.find();
 }
+
+export const passwordRecovery = async (phone: any, password: string) => {
+    return await userCollection.updateOne({
+            phone: phone
+        },
+        {
+            $set: {
+                password: password
+            }
+        })
+}

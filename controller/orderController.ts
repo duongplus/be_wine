@@ -9,7 +9,7 @@ import {
     createOrder,
     minusWineFromOrder, selectOrderConfirmByMonth,
     selectOrderByPhone,
-    updateOrderStatus, updateAmountWineInOrder
+    updateOrderStatus, updateAmountWineInOrder, deleteWineFromOrder, SelectOrderConfirm
 } from "../repository/orderRepo.ts";
 import {Wine} from "../model/wine.ts";
 import {User} from "../model/user.ts";
@@ -198,16 +198,16 @@ export const checkoutHandler = async (context: Context) => {
         const wine: Wine = await selectWineById(_orderInfo.wine._id.$oid)
         if(wine.capacity <=0 ){
             console.log("wine.capacity", wine.capacity)
-            const deleteWine = await minusWineFromOrder(data?.phone, i, _wines)
+            const deleteWine = await deleteWineFromOrder(data?.phone, i, _wines)
             if(!deleteWine) {
                 return Response(context, Status.ExpectationFailed, {
                     status: Status.ExpectationFailed,
                     message: STATUS_TEXT.get(Status.ExpectationFailed),
                 });
             }
-            return Response(context, Status.NotAcceptable, {
-                status: Status.NotAcceptable,
-                message: STATUS_TEXT.get(Status.NotAcceptable),
+            return Response(context, Status.ResetContent, {
+                status: Status.ResetContent,
+                message: STATUS_TEXT.get(Status.ResetContent),
                 data: _wines
             });
 
@@ -357,5 +357,21 @@ export const getCountOrder = async (context: any) => {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
         data: count,
+    });
+}
+
+export const historyHandler = async (context: any) => {
+    const data = await fetchPayload(context);
+    const histories = await SelectOrderConfirm(data?.phone);
+    if(!histories){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        });
+    }
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: histories,
     });
 }

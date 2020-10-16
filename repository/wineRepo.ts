@@ -7,6 +7,10 @@ export const saveWine = async (wine: Wine) => {
     return await wineCollection.insertOne(wine);
 };
 
+export const findWine = async () => {
+    return await wineCollection.find();
+}
+
 export const checkWineExist = async (wine: Wine) => {
     return wineCollection.findOne({
         name: wine.name,

@@ -79,6 +79,18 @@ export const minusWineFromOrder = async (phone: any, index: number, wines: Order
         });
 }
 
+export const deleteWineFromOrder = async (phone: any, index: number, wines: OrderInfo[]) => {
+    wines.splice(index, 1);
+    return await orderCollection.updateOne({
+            phone: phone, status: OrderStatus.PENDING
+        },
+        {
+            $set: {
+                wines: wines
+            }
+        });
+}
+
 // export const checkWineExist = async (phone: any, wineId: any) => {
 //     return await orderCollection.find({
 //         phone: phone,
@@ -153,4 +165,11 @@ export const selectOrderConfirmByMonth = async (m: any) => {
             date: {$gte: isoGtDate.toISOString(), $lt: isoLtDate.toISOString()}
         }
     )
+}
+
+export const SelectOrderConfirm = async (phone: any) => {
+    return await orderCollection.find({
+        status: OrderStatus.CONFIRM,
+        phone: phone,
+    });
 }

@@ -2,12 +2,13 @@ import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import {Response} from "../helper/Response.ts"
 import {Wine} from "../model/wine.ts";
 import {
-    checkWineExist,
+    checkWineExist, findWine,
     saveWine,
     selectWineByCateId,
     selectWineById,
     updateCapacityWine, updateWine
 } from "../repository/wineRepo.ts"
+import {findCate, saveCate} from "../repository/cateRepo.ts";
 import {fetchPayload} from "../helper/token.ts";
 import {ROLE, User} from "../model/user.ts";
 import {selectUserByPhone} from "../repository/userRepo.ts";
@@ -19,6 +20,26 @@ export const exportAnImage = async (context: Context) => {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
         data: imageBuf,
+    })
+}
+
+export const addCateHandler = async (context: any) => {
+    const payload = await fetchPayload(context);
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (user.role != ROLE.ADMIN) {
+        return Response(context, Status.Unauthorized, {
+            status: Status.Unauthorized,
+            message: "Permission deny"
+        })
+    }
+    const body = await context.request.body()
+    const data = body.value
+    const isSave = await saveCate(data.cateName);
+
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: isSave,
     })
 }
 
@@ -52,12 +73,18 @@ export const wineListHandler = async (context: Context) => {
             "cateId": "7",
             "cateName": "Vang Mạnh"
         },
+        {
+            "cateId": "8",
+            "cateName": "Rượu khác"
+        },
     ]
+
+    const cs = await findCate();
 
     return Response(context, Status.OK, {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
-        data: cates
+        data: cs
     })
 };
 
@@ -162,5 +189,15 @@ export const wineUpdateHandler = async  (context:any) => {
     return Response(context, Status.OK, {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
+    })
+}
+
+export const findAllWineHandler = async  (context:any) => {
+    const payload = await fetchPayload(context);
+    const wines = await findWine();
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
+        data: wines
     })
 }
