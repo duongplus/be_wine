@@ -73,3 +73,13 @@ export const updateWine = async (wineId: any, wine: Wine) => {
         }
     })
 }
+
+export const deleteWine = async (oid: any) => {
+    return wineCollection.deleteOne(
+        {
+            _id: {
+                $oid: oid,
+            },
+        }
+    )
+}

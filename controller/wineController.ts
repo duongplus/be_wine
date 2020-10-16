@@ -2,7 +2,7 @@ import {Context, Status, STATUS_TEXT} from "https://deno.land/x/oak/mod.ts";
 import {Response} from "../helper/Response.ts"
 import {Wine} from "../model/wine.ts";
 import {
-    checkWineExist, findWine,
+    checkWineExist, deleteWine, findWine,
     saveWine,
     selectWineByCateId,
     selectWineById,
@@ -195,9 +195,38 @@ export const wineUpdateHandler = async  (context:any) => {
 export const findAllWineHandler = async  (context:any) => {
     const payload = await fetchPayload(context);
     const wines = await findWine();
+    if(!wines){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        })
+    }
     return Response(context, Status.OK, {
         status: Status.OK,
         message: STATUS_TEXT.get(Status.OK),
         data: wines
+    })
+}
+
+export const deleteWineHandler = async (context: any) => {
+    const { wineId } = context.params as { wineId: string };
+    const payload = await fetchPayload(context);
+    const user: User = await selectUserByPhone(payload?.phone);
+    if (user.role != ROLE.ADMIN) {
+        return Response(context, Status.Unauthorized, {
+            status: Status.Unauthorized,
+            message: "Permission deny"
+        })
+    }
+    const deletedWine = await deleteWine(wineId);
+    if(!deletedWine){
+        return Response(context, Status.NotFound, {
+            status: Status.NotFound,
+            message: STATUS_TEXT.get(Status.NotFound),
+        })
+    }
+    return Response(context, Status.OK, {
+        status: Status.OK,
+        message: STATUS_TEXT.get(Status.OK),
     })
 }

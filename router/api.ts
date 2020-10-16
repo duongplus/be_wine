@@ -12,7 +12,7 @@ import {
     addWineHandler,
     wineDetailHandler,
     wineCateHandler,
-    exportAnImage, wineUpdateHandler, addCateHandler, findAllWineHandler
+    exportAnImage, wineUpdateHandler, addCateHandler, findAllWineHandler, deleteWineHandler
 } from "../controller/wineController.ts";
 import {
     addToCartHandler,
@@ -41,6 +41,7 @@ router
     .get("/api/wine/list", wineListHandler)
     .post("/api/wine/add", jwtMiddleware, addWineHandler)
     .post("/api/wine/update/:wineId", jwtMiddleware, wineUpdateHandler)
+    .post("/api/wine/delete/:wineId", jwtMiddleware, deleteWineHandler)
     .get("/api/wine/detail/:id", wineDetailHandler)
     .get("/api/wine/cate/:cateId", wineCateHandler)
     .post("/api/order/add-to-cart/:wineId", jwtMiddleware, addToCartHandler)
